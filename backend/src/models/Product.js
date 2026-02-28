@@ -1,42 +1,46 @@
-const mongoose = require('mongoose');
+// src/models/Product.js
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const productSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  price: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  description: {
-    type: String,
-    required: true
-  },
-  image: {
-    type: String,
-    required: true
-  },
-  category: {
-    type: String,
-    required: true,
-    enum: ['wall-art', 'bookmarks', 'phone-cases', 'gifts', 'wall-decor']
-  },
-  customizable: {
-    type: Boolean,
-    default: false
-  },
-  stock: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+const Product = sequelize.define('Product', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    name: {
+        type: DataTypes.STRING(200),
+        allowNull: false
+    },
+    description: {
+        type: DataTypes.TEXT
+    },
+    price: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        validate: {
+            min: 0
+        }
+    },
+    category: {
+        type: DataTypes.STRING(100)
+    },
+    image_url: {
+        type: DataTypes.STRING(500)
+    },
+    stock_quantity: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        validate: {
+            min: 0
+        }
+    }
+}, {
+    tableName: 'products',
+    timestamps: true,
+    createdAt: 'created_at',     // Map to actual column name
+    updatedAt: 'updated_at',     // Map to actual column name
+    underscored: true            // Use snake_case for auto-generated fields
 });
 
-module.exports = mongoose.model('Product', productSchema);
+module.exports = Product;

@@ -1,21 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import { Search, Filter } from 'lucide-react';
 import { HandDrawnHeart } from '../components/HandDrawnIcons';
-import { useProductStore } from '../store/productStore';
-
+import api from '../services/api';
 export function Shop() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const products = useProductStore((state) => state.products);
+  // const products = useProductStore((state) => state.products);
+  const [products,setProducts] = useState([]);
 
+  useEffect(()=>{
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      if(categoryFilter === 'All') {
+        const response = await api.getProducts({ limit: 100 });
+        setProducts(response.products);
+      } else {
+        const response = await api.getProducts({ category: categoryFilter, limit: 100 });
+        setProducts(response.products);
+      }
+  } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  }
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
+    const matchesSearch = product?.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          product?.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || product?.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -85,10 +102,10 @@ export function Shop() {
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-3">
-                    <h2 className="text-2xl font-serif font-semibold leading-tight text-gray-800">{product.name}</h2>
-                    <span className="text-xl font-semibold text-brand-600 ml-2">${product.price.toFixed(2)}</span>
+                    <h2 className="text-2xl font-serif font-semibold leading-tight text-gray-800">{product?.name}</h2>
+                    <span className="text-xl font-semibold text-brand-600 ml-2">${product?.price}</span>
                   </div>
-                  <p className="text-gray-500 text-sm mb-6 flex-grow leading-relaxed">{product.description}</p>
+                  <p className="text-gray-500 text-sm mb-6 flex-grow leading-relaxed">{product?.description}</p>
                   <button className="hand-drawn-btn w-full">
                     View Details
                   </button>

@@ -1,36 +1,32 @@
+// server.js
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
+const sequelize = require('./src/config/database');
 
 dotenv.config();
 
-const app = express();
+const app = require('./src/app');
+
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Test database connection
+sequelize.authenticate()
+    .then(() => console.log('✅ Database connected successfully'))
+    .catch(err => console.error('❌ Database connection error:', err));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/handmade-store')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Routes
-app.use('/api/auth', require('./src/routes/authRoutes'));
-app.use('/api/products', require('./src/routes/productRoutes'));
-app.use('/api/orders', require('./src/routes/orderRoutes'));
-app.use('/api/users', require('./src/routes/userRoutes'));
-app.use('/api/reviews', require('./src/routes/reviewRoutes'));
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
+// Don't auto-sync in production, use migrations instead
+if (process.env.NODE_ENV === 'development') {
+    // Use { alter: false } to avoid altering existing tables
+    sequelize.sync({ alter: false })
+        .then(() => console.log('✅ Database tables checked'))
+        .catch(err => {
+            console.error('❌ Sync error:', err.message);
+            console.log('⚠️ Continuing without sync - make sure your tables exist');
+        });
+}
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });

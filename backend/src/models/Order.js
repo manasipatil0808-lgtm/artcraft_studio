@@ -1,59 +1,47 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const User = require('./User');
 
-const orderItemSchema = new mongoose.Schema({
-  productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true
-  },
-  name: String,
-  price: Number,
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  customizations: {
-    text: String,
-    color: String,
-    image: String
-  }
+const Order = sequelize.define('Order', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: User,
+            key: 'id'
+        }
+    },
+    order_number: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        unique: true
+    },
+    total_amount: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false
+    },
+    status: {
+        type: DataTypes.ENUM('pending', 'processing', 'completed', 'cancelled'),
+        defaultValue: 'pending'
+    },
+    payment_status: {
+        type: DataTypes.ENUM('pending', 'completed', 'failed'),
+        defaultValue: 'pending'
+    },
+    shipping_address: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    }
+}, {
+    timestamps: true,
+    tableName: 'orders'
 });
 
-const orderSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  customerName: {
-    type: String,
-    required: true
-  },
-  customerEmail: {
-    type: String,
-    required: true
-  },
-  customerPhone: String,
-  address: {
-    type: String,
-    required: true
-  },
-  items: [orderItemSchema],
-  total: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'processing', 'shipped', 'delivered'],
-    default: 'pending'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+Order.belongsTo(User, { foreignKey: 'user_id' });
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = Order;

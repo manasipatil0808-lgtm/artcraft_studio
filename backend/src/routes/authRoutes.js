@@ -1,28 +1,18 @@
 const express = require('express');
-const router = express.Router();
 const { body } = require('express-validator');
-const { register, login, getProfile } = require('../controllers/authController');
-const { auth } = require('../middleware/auth');
+const authController = require('../controllers/authController');
+const { authenticate } = require('../middleware/auth');
+const { validateRegister, validateLogin } = require('../middleware/validation');
 
-router.post(
-  '/register',
-  [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Please enter a valid email'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
-  ],
-  register
-);
+const router = express.Router();
 
-router.post(
-  '/login',
-  [
-    body('email').isEmail().withMessage('Please enter a valid email'),
-    body('password').notEmpty().withMessage('Password is required')
-  ],
-  login
-);
+// Register route
+router.post('/register', validateRegister, authController.register);
 
-router.get('/profile', auth, getProfile);
+// Login route
+router.post('/login', validateLogin, authController.login);
+
+// Get current user (protected)
+router.get('/me', authenticate, authController.getCurrentUser);
 
 module.exports = router;
