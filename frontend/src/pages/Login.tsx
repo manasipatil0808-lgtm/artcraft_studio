@@ -8,29 +8,23 @@ export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('user');
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const login = useAuthStore((state) => state.login);
+
+  const { login, isLoading, clearError } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Mock login delay
-    setTimeout(() => {
-      // In a real app, you'd verify credentials with a backend
-      const name = role === 'admin' ? 'Admin Seller' : 'Happy Customer';
-      login(email, role, name);
-      toast.success(`Welcome back, ${name}!`);
-      
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
-      setIsLoading(false);
-    }, 1000);
+     clearError();
+    
+    try {
+      await login(email, password);
+      toast.success('Logged in successful')
+      // Redirect based on role - will be handled by the store
+      navigate('/');
+    } catch (err) {
+      // Error is already set in store
+      console.error('Login failed:', err);
+    }
   };
 
   return (

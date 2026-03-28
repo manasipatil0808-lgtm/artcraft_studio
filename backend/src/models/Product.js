@@ -1,46 +1,53 @@
 // src/models/Product.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
-const Product = sequelize.define('Product', {
+const Product = sequelize.define(
+  "Product",
+  {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
     name: {
-        type: DataTypes.STRING(200),
-        allowNull: false
+      type: DataTypes.STRING(200),
+      allowNull: false,
     },
     description: {
-        type: DataTypes.TEXT
+      type: DataTypes.TEXT,
     },
     price: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-        validate: {
-            min: 0
-        }
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
     },
     category: {
-        type: DataTypes.STRING(100)
+      type: DataTypes.STRING(100),
+    },
+    image: {
+      type: DataTypes.TEXT("long"), // For base64 images
+      allowNull: true,
     },
     image_url: {
-        type: DataTypes.STRING(500)
+      type: DataTypes.STRING(500), // Keep for backward compatibility
+      allowNull: true,
     },
     stock_quantity: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-        validate: {
-            min: 0
-        }
-    }
-}, {
-    tableName: 'products',
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    customizable: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  },
+  {
+    tableName: "products",
     timestamps: true,
-    createdAt: 'created_at',     // Map to actual column name
-    updatedAt: 'updated_at',     // Map to actual column name
-    underscored: true            // Use snake_case for auto-generated fields
-});
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    underscored: true,
+  },
+);
 
 module.exports = Product;

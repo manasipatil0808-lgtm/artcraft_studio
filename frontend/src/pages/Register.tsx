@@ -11,7 +11,7 @@ export function Register() {
   const [role, setRole] = useState<UserRole>('user');
   const [isLoading, setIsLoading] = useState(false);
   
-  const login = useAuthStore((state) => state.login);
+  const register = useAuthStore((state) => state.register);
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,7 +20,7 @@ export function Register() {
 
     // Mock registration delay
     setTimeout(() => {
-      login(email, role, name);
+      register(name, email, password , role);
       toast.success(`Welcome to the community, ${name}!`);
       
       if (role === 'admin') {

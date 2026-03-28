@@ -14,8 +14,11 @@ router.post('/', [
     body('payment_method').notEmpty().withMessage('Payment method required')
 ], orderController.createOrder);
 
+router.post('/verify-payment', orderController.verifyPayment);
+router.post('/send-invoice', orderController.sendInvoice);
 router.get('/my-orders', orderController.getUserOrders);
 router.get('/:id', orderController.getOrderDetails);
+router.put('/cancel/:id', orderController.cancelOrder);
 
 // Admin routes
 router.get('/admin/all', authorizeAdmin, orderController.getAllOrders);

@@ -12,6 +12,7 @@ import {
 } from "./HandDrawnIcons";
 import { useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
+import ScrollToTop from "./ScrollToTop";
 
 export function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,6 +28,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-gray-700">
+      <ScrollToTop/>
       <Toaster position="top-right" richColors />
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 md:px-12 py-5 flex justify-between items-center">

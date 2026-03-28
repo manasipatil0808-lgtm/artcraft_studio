@@ -4,29 +4,21 @@ import { Link } from 'react-router';
 import { Search, Filter } from 'lucide-react';
 import { HandDrawnHeart } from '../components/HandDrawnIcons';
 import api from '../services/api';
+import { useProductStore } from '../store/productStore';
 export function Shop() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   // const products = useProductStore((state) => state.products);
-  const [products,setProducts] = useState([]);
+  // const [products,setProducts] = useState([]);
 
-  useEffect(()=>{
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      if(categoryFilter === 'All') {
-        const response = await api.getProducts({ limit: 100 });
-        setProducts(response.products);
-      } else {
-        const response = await api.getProducts({ category: categoryFilter, limit: 100 });
-        setProducts(response.products);
-      }
-  } catch (error) {
-      console.error('Error fetching products:', error);
-    }
-  }
+  const {
+      products,
+      fetchProducts,
+    } = useProductStore();
+  
+    useEffect(()=>{
+      fetchProducts(1, 100);
+    },[])
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
   const filteredProducts = products.filter(product => {
@@ -89,8 +81,8 @@ export function Shop() {
               >
                 <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-brand-50 to-mint-50 rounded-t-xl">
                   <img 
-                    src={product.image} 
-                    alt={product.name} 
+                    src={product?.image_url && product?.image } 
+                    alt={product?.name} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
                   {product.customizable && (
@@ -103,7 +95,7 @@ export function Shop() {
                 <div className="p-6 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-3">
                     <h2 className="text-2xl font-serif font-semibold leading-tight text-gray-800">{product?.name}</h2>
-                    <span className="text-xl font-semibold text-brand-600 ml-2">${product?.price}</span>
+                    <span className="text-xl font-semibold text-brand-600 ml-2">{product?.price}</span>
                   </div>
                   <p className="text-gray-500 text-sm mb-6 flex-grow leading-relaxed">{product?.description}</p>
                   <button className="hand-drawn-btn w-full">

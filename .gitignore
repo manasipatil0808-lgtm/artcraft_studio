@@ -1,0 +1,34 @@
+# Ignores all files ending with .log in any directory
+*.log
+
+# Ignores a specific file named config.json in the root directory
+/config.json
+
+# Ignores a specific directory and all its contents
+temp/
+
+# Ignores all directories named 'build' or 'dist' anywhere in the project
+**/build/
+**/dist/
+
+# Ignores all files with the .tmp extension
+*.tmp
+
+# Exclude a specific file from being ignored, even if a pattern matches
+!/temp/important.log
+
+# Operating System generated files
+.DS_Store # macOS specific
+Thumbs.db # Windows specific
+
+# IDE or Editor specific files and folders
+.idea/ # IntelliJ IDEA specific
+.vscode/ # VS Code specific
+
+# Dependency folders
+node_modules/
+.venv/
+
+# Compiled files
+*.pyc # Python compiled files
+*.class # Java compiled files

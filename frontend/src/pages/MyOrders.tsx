@@ -6,7 +6,7 @@ import { useOrderStore } from '../store/orderStore';
 import { useAuthStore } from '../store/authStore';
 
 export function MyOrders() {
-  const orders = useOrderStore((state) => state.orders);
+  const { orders, loading, error, fetchUserOrders, updateStatus } = useOrderStore();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 

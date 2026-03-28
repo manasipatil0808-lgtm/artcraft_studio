@@ -3,11 +3,20 @@ import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router';
 import { HandDrawnHeart, HandDrawnGift } from '../components/HandDrawnIcons';
 import { useProductStore } from '../store/productStore';
+import { useEffect } from 'react';
 
 export function Home() {
-  const products = useProductStore((state) => state.products);
-  const featuredProducts = products.slice(0, 3);
+  // const products = useProductStore((state) => state.products);
+  
+  const {
+    products,
+    fetchProducts,
+  } = useProductStore();
 
+  useEffect(()=>{
+    fetchProducts(1, 100);
+  },[])
+  const featuredProducts = products.slice(0, 3);
   return (
     <div className="space-y-20 fade-in-up">
       {/* Hero Section */}
@@ -86,7 +95,7 @@ export function Home() {
                 <h3 className="text-2xl font-serif font-semibold mb-2 text-gray-800">{product.name}</h3>
                 <p className="text-gray-500 mb-5 line-clamp-2 leading-relaxed">{product.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-semibold text-brand-600">${product.price.toFixed(2)}</span>
+                  <span className="text-2xl font-semibold text-brand-600">${product.price}</span>
                   <Link 
                     to={`/product/${product.id}`}
                     className="px-5 py-2 bg-gray-50 hover:bg-brand-50 hover:text-brand-600 rounded-full font-medium transition-all border border-gray-100 hover:border-brand-200"

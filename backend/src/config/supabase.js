@@ -1,55 +1,61 @@
 // src/config/supabase.js
-const { createClient } = require('@supabase/supabase-js');
-const dotenv = require('dotenv');
+const { createClient } = require("@supabase/supabase-js");
+const dotenv = require("dotenv");
 
 dotenv.config();
 
-// Check if Supabase credentials are valid
-let supabase = null;
-let supabaseUrl = process.env.SUPABASE_URL;
-let supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
-// Only initialize if credentials are valid and URL format is correct
-if (supabaseUrl && supabaseKey && supabaseUrl.trim().startsWith('https://')) {
-    try {
-        supabase = createClient(supabaseUrl.trim(), supabaseKey.trim());
-        console.log('✅ Supabase initialized successfully');
-    } catch (error) {
-        console.warn('⚠️ Supabase initialization failed:', error.message);
-        console.warn('⚠️ Using mock payment system instead');
-        supabase = null;
-    }
-} else {
-    console.warn('⚠️ Supabase not configured or invalid URL - using mock payment system');
-    if (supabaseUrl) {
-        console.warn('   Make sure SUPABASE_URL starts with https://');
-    }
+if (!supabaseUrl || !supabaseKey) {
+  console.warn("⚠️ Supabase credentials missing. Supabase features will be unavailable.");
+  module.exports = {
+    supabase: null,
+    createSupabasePayment: async () => {
+      throw new Error("Supabase is not configured");
+    },
+  };
+  return;
 }
 
-// Mock payment function for development
-const createSupabasePayment = async (paymentData) => {
-    console.log('📝 Mock payment created for order:', paymentData.orderNumber);
-    
-    // Return mock payment data for development
-    return {
-        id: 'mock_pay_' + Date.now(),
-        checkout_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?order=${paymentData.orderNumber}`
-    };
-};
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Mock verify payment
-const verifyPayment = async (paymentId) => {
-    console.log('🔍 Mock payment verification for ID:', paymentId);
+// Simple function to create a payment session
+const createSupabasePayment = async (paymentData) => {
+  try {
+    const { amount, orderNumber, userId } = paymentData;
+
+    // Insert payment record in Supabase
+    const { data, error } = await supabase
+      .from("payments")
+      .insert([
+        {
+          order_number: orderNumber,
+          user_id: userId,
+          amount: amount,
+          currency: "INR",
+          status: "pending",
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Generate a simple checkout URL
+    const checkoutUrl = `${process.env.SUPABASE_URL}/functions/v1/create-checkout?payment_id=${data.id}`;
+
     return {
-        id: paymentId,
-        status: 'success',
-        amount: 1000,
-        verified_at: new Date().toISOString()
+      id: data.id,
+      checkout_url: checkoutUrl,
     };
+  } catch (error) {
+    console.error("Supabase payment error:", error);
+    throw error;
+  }
 };
 
 module.exports = {
-    supabase,
-    createSupabasePayment,
-    verifyPayment
+  supabase,
+  createSupabasePayment,
 };
