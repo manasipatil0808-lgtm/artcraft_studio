@@ -25,6 +25,13 @@ exports.authenticate = async (req, res, next) => {
     }
 };
 
+exports.authorizeSeller = (req, res, next) => {
+    if (req.user.role !== 'seller' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Sellers only.' });
+    }
+    next();
+};
+
 exports.authorizeAdmin = (req, res, next) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied. Admin only.' });

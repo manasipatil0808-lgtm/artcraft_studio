@@ -68,11 +68,12 @@ export function Cart() {
   };
 
   // Extract numeric total
-  const getNumericTotal = () => {
-    if (typeof total === 'string' && total.startsWith('₹')) {
-      return parseFloat(total.replace('₹', ''));
+  const getNumericTotal = (): number => {
+    const t = total as any;
+    if (typeof t === 'string' && t.startsWith('₹')) {
+      return parseFloat(t.replace('₹', ''));
     }
-    return typeof total === 'number' ? total : 0;
+    return typeof t === 'number' ? t : 0;
   };
 
   const numericTotal = getNumericTotal();

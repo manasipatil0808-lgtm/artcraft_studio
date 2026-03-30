@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import {
@@ -10,13 +10,14 @@ import {
   Check,
   Star,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { ChangeEvent } from "react";
-import { nanoid } from "nanoid";
 import { useProductStore } from "../store/productStore";
 import { useCartStore } from "../store/cartStore";
 import { useReviewStore } from "../store/reviewStore";
+import { useAuthStore } from "../store/authStore";
 import api from "../services/api";
 
 interface CustomizationForm {
@@ -39,20 +40,14 @@ export function ProductDetails() {
 
   const addItem = useCartStore((state) => state.addItem);
 
-  const allReviews = useReviewStore((state) => state.reviews);
-  const addReview = useReviewStore((state) => state.addReview);
-
-  // Cache the filtered reviews to avoid infinite loop
-  const reviews = useMemo(() => {
-    return allReviews.filter((r) => r.productId === id);
-  }, [allReviews, id]);
+  const { reviews, fetchReviews, addReview, deleteReview, loading: reviewLoading } = useReviewStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [quantity, setQuantity] = useState(1);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   // Review state
   const [rating, setRating] = useState(5);
-  const [reviewName, setReviewName] = useState("");
   const [reviewComment, setReviewComment] = useState("");
 
   const {
@@ -90,6 +85,13 @@ export function ProductDetails() {
 
     loadProduct();
   }, [id, products, fetchProductById]);
+
+  // Fetch reviews when product loads
+  useEffect(() => {
+    if (id) {
+      fetchReviews(id);
+    }
+  }, [id, fetchReviews]);
 
   // Handle loading state
   if (loading || productLoading) {
@@ -194,23 +196,33 @@ export function ProductDetails() {
     }
   };
 
-  const handleAddReview = (e: React.FormEvent) => {
+  const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
 
-    addReview({
-      id: nanoid(),
-      productId: id,
-      userName: reviewName || "Anonymous",
-      rating,
-      comment: reviewComment,
-      date: new Date().toISOString(),
-    });
+    if (!isAuthenticated) {
+      toast.error("Please login to write a review");
+      navigate("/login");
+      return;
+    }
 
-    setReviewName("");
-    setReviewComment("");
-    setRating(5);
-    toast.success("Review added! Thank you for your feedback.");
+    try {
+      await addReview(Number(id), rating, reviewComment);
+      setReviewComment("");
+      setRating(5);
+      toast.success("Review added! Thank you for your feedback.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add review");
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      await deleteReview(reviewId);
+      toast.success("Review deleted");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete review");
+    }
   };
 
   // Calculate total price
@@ -461,9 +473,20 @@ export function ProductDetails() {
                         ))}
                       </div>
                     </div>
-                    <span className="text-sm text-gray-400">
-                      {new Date(review.date).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-400">
+                        {new Date(review.date).toLocaleDateString()}
+                      </span>
+                      {(user?.role === 'admin' || (user && Number(user.id) === review.userId)) && (
+                        <button
+                          onClick={() => handleDeleteReview(Number(review.id))}
+                          className="text-red-400 hover:text-red-600 p-1 rounded transition-colors"
+                          title="Delete review"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-gray-600 font-hand text-lg">
                     {review.comment}
@@ -476,57 +499,63 @@ export function ProductDetails() {
           {/* Add Review Form */}
           <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
             <h3 className="text-xl font-bold mb-4">Write a Review</h3>
-            <form onSubmit={handleAddReview} className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold mb-1">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  value={reviewName}
-                  onChange={(e) => setReviewName(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="Enter your name"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold mb-1">Rating</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      type="button"
-                      key={star}
-                      onClick={() => setRating(star)}
-                      className={`text-3xl transition-all hover:scale-110 ${star <= rating ? "text-yellow-400" : "text-gray-300"}`}
-                    >
-                      ★
-                    </button>
-                  ))}
+            {isAuthenticated ? (
+              <form onSubmit={handleAddReview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1">
+                    Reviewing as <span className="text-pink-600">{user?.name}</span>
+                  </label>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-bold mb-1">
-                  Your Review
-                </label>
-                <textarea
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg h-24 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="Tell us what you think..."
-                  required
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className={`text-3xl transition-all hover:scale-110 ${star <= rating ? "text-yellow-400" : "text-gray-300"}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <button
-                type="submit"
-                className="w-full bg-gray-800 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-700 transition-colors"
-              >
-                Submit Review
-              </button>
-            </form>
+                <div>
+                  <label className="block text-sm font-bold mb-1">
+                    Your Review
+                  </label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    className="w-full px-4 py-2 border rounded-lg h-24 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="Tell us what you think... (min 5 characters)"
+                    required
+                    minLength={5}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={reviewLoading}
+                  className="w-full bg-gray-800 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  {reviewLoading ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">Please login to write a review</p>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="bg-pink-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-pink-600 transition-colors"
+                >
+                  Sign In
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

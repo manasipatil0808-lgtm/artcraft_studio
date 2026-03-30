@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import api from "../services/api";
+
+const API_BASE_URL = "http://localhost:5000";
 
 export interface Product {
   id: number;
@@ -11,6 +12,7 @@ export interface Product {
   image: string | null; // Base64 encoded image or binary data
   image_url?: string; // Optional URL for display
   stock_quantity: number;
+  customizable: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -81,7 +83,6 @@ export const createProductFormData = (
 };
 
 export const useProductStore = create<ProductState>()(
-  persist(
     (set, get) => ({
       products: [],
       loading: false,
@@ -96,27 +97,14 @@ export const useProductStore = create<ProductState>()(
         try {
           const response = await api.getProducts({ page, limit, ...filters });
 
-          // Convert image URLs to base64 if needed
-          const productsWithImages = await Promise.all(
-            response.products.map(async (product: any) => {
-              // If product has image URL, fetch and convert to base64
-              if (product.image_url && !product.image) {
-                try {
-                  const imageBase64 = await fetchImageAsBase64(
-                    product.image_url,
-                  );
-                  return { ...product, image: imageBase64 };
-                } catch (err) {
-                  console.warn(
-                    `Failed to load image for product ${product.id}:`,
-                    err,
-                  );
-                  return product;
-                }
-              }
-              return product;
-            }),
-          );
+          // Normalize image URLs — resolve relative paths to full backend URLs
+          const productsWithImages = response.products.map((product: any) => {
+            let resolvedImageUrl = product.image_url;
+            if (resolvedImageUrl && !resolvedImageUrl.startsWith("http") && !resolvedImageUrl.startsWith("data:")) {
+              resolvedImageUrl = `${API_BASE_URL}${resolvedImageUrl}`;
+            }
+            return { ...product, image_url: resolvedImageUrl };
+          });
 
           set({
             products: productsWithImages,
@@ -137,16 +125,11 @@ export const useProductStore = create<ProductState>()(
       fetchProductById: async (id: number) => {
         set({ loading: true, error: null });
         try {
-          const product = await api.getProductById(id);
+          const product = await api.getProduct(id);
 
-          // Fetch and convert image if needed
-          if (product.image_url && !product.image) {
-            try {
-              const imageBase64 = await fetchImageAsBase64(product.image_url);
-              product.image = imageBase64;
-            } catch (err) {
-              console.warn(`Failed to load image for product ${id}:`, err);
-            }
+          // Resolve relative image URL to full backend URL
+          if (product.image_url && !product.image_url.startsWith("http") && !product.image_url.startsWith("data:")) {
+            product.image_url = `${API_BASE_URL}${product.image_url}`;
           }
 
           set({ loading: false });
@@ -175,7 +158,7 @@ export const useProductStore = create<ProductState>()(
       addProduct: async (productData: FormData | any) => {
         set({ loading: true, error: null });
         try {
-          let response;
+          let response: any;
 
           if (productData instanceof FormData) {
             // If it's FormData, send directly
@@ -184,6 +167,7 @@ export const useProductStore = create<ProductState>()(
             // If it's regular object, send as JSON
             response = await api.createProduct(productData);
           }
+          void response; // Response handled by server, we refresh products list below
 
           // Refresh products list
           await get().fetchProducts();
@@ -264,34 +248,17 @@ export const useProductStore = create<ProductState>()(
           totalPages: 1,
         }),
     }),
-    {
-      name: "artcraft-product-storage",
-      storage: createJSONStorage(() => localStorage),
-      // Only persist these fields
-      partialize: (state) => ({
-        products: state.products.map((p) => ({
-          ...p,
-          // Don't store large images in localStorage
-          image: p.image ? "[IMAGE_STORED]" : null,
-        })),
-      }),
-    },
-  ),
 );
 
-// Helper function to fetch image as base64
-async function fetchImageAsBase64(url: string): Promise<string> {
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error("Failed to fetch image:", error);
-    throw error;
+// Helper to get the best display image for a product
+export function getProductImageSrc(product: Product): string | undefined {
+  // Prefer base64 image (self-contained, always works)
+  if (product.image && product.image !== "[IMAGE_STORED]") {
+    return product.image;
   }
+  // Fall back to image_url (should already be resolved to full URL)
+  if (product.image_url) {
+    return product.image_url;
+  }
+  return undefined;
 }

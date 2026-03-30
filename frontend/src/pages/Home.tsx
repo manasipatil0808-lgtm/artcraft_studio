@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router';
 import { HandDrawnHeart, HandDrawnGift } from '../components/HandDrawnIcons';
-import { useProductStore } from '../store/productStore';
+import { useProductStore, getProductImageSrc } from '../store/productStore';
 import { useEffect } from 'react';
 
 export function Home() {
@@ -83,7 +83,7 @@ export function Home() {
             >
               <div className="relative aspect-square overflow-hidden rounded-t-xl bg-gradient-to-br from-brand-50 to-mint-50">
                 <img 
-                  src={product.image} 
+                  src={getProductImageSrc(product)} 
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />

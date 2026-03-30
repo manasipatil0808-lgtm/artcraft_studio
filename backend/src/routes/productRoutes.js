@@ -3,7 +3,7 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const productController = require("../controllers/productController");
-const { authenticate, authorizeAdmin } = require("../middleware/auth");
+const { authenticate, authorizeSeller } = require("../middleware/auth");
 const { validateProduct } = require("../middleware/validation");
 
 const router = express.Router();
@@ -52,7 +52,7 @@ router.get("/:id", productController.getProductById);
 router.post(
   "/",
   authenticate,
-  authorizeAdmin,
+  authorizeSeller,
   validateProduct,
   productController.createProduct,
 );
@@ -61,7 +61,7 @@ router.post(
 router.post(
   "/with-image",
   authenticate,
-  authorizeAdmin,
+  authorizeSeller,
   upload.single("image"),
   productController.createProductWithImage,
 );
@@ -69,7 +69,7 @@ router.post(
 router.put(
   "/:id",
   authenticate,
-  authorizeAdmin,
+  authorizeSeller,
   validateProduct,
   productController.updateProduct,
 );
@@ -78,7 +78,7 @@ router.put(
 router.put(
   "/:id/with-image",
   authenticate,
-  authorizeAdmin,
+  authorizeSeller,
   upload.single("image"),
   productController.updateProductWithImage,
 );
@@ -86,7 +86,7 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  authorizeAdmin,
+  authorizeSeller,
   productController.deleteProduct,
 );
 

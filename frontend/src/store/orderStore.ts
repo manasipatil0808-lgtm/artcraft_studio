@@ -69,11 +69,20 @@ const formatOrderFromBackend = (backendOrder: any): Order => {
   }
 
   // Format items
+  // Helper to parse price strings that may have ₹ prefix
+  const parsePrice = (price: any): number => {
+    if (typeof price === "number") return price;
+    if (typeof price === "string") {
+      return parseFloat(price.replace(/[₹,]/g, "")) || 0;
+    }
+    return 0;
+  };
+
   const items = (backendOrder.OrderItems || backendOrder.items || []).map(
     (item: any) => ({
       id: item.product_id || item.id,
       name: item.Product?.name || item.name || "Product",
-      price: parseFloat(item.price) || 0,
+      price: parsePrice(item.price),
       quantity: item.quantity || 1,
       image: item.Product?.image_url || item.image,
       description: item.Product?.description,
@@ -107,7 +116,7 @@ const formatOrderFromBackend = (backendOrder: any): Order => {
 
 export const useOrderStore = create<OrderState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       orders: [],
       loading: false,
       error: null,
@@ -221,12 +230,13 @@ export const useOrderStore = create<OrderState>()(
           await api.updateOrderStatus(Number(id), backendStatus);
 
           // Update local state
+          const numId = Number(id);
           set((state) => ({
             orders: state.orders.map((order) =>
-              order.id === id ? { ...order, status } : order,
+              Number(order.id) === numId ? { ...order, status } : order,
             ),
             currentOrder:
-              state.currentOrder?.id === id
+              state.currentOrder && Number(state.currentOrder.id) === numId
                 ? { ...state.currentOrder, status }
                 : state.currentOrder,
             loading: false,
@@ -248,12 +258,13 @@ export const useOrderStore = create<OrderState>()(
           await api.cancelOrder(Number(id));
 
           // Update local state
+          const numId = Number(id);
           set((state) => ({
             orders: state.orders.map((order) =>
-              order.id === id ? { ...order, status: "cancelled" } : order,
+              Number(order.id) === numId ? { ...order, status: "cancelled" } : order,
             ),
             currentOrder:
-              state.currentOrder?.id === id
+              state.currentOrder && Number(state.currentOrder.id) === numId
                 ? { ...state.currentOrder, status: "cancelled" }
                 : state.currentOrder,
             loading: false,
@@ -304,150 +315,3 @@ export const useOrderStore = create<OrderState>()(
   ),
 );
 
-// Optional: Demo data for initial development
-// export const demoOrders: Order[] = [
-//   {
-//     id: 'demo001',
-//     order_number: 'ORD-DEMO-001',
-//     customerName: 'Demo User',
-//     customerEmail: 'demo@example.com',
-//     customerPhone: '+1 (555) 123-4567',
-//     address: '123 Craft Street, Artisan City, AC 12345',
-//     shipping_address: '123 Craft Street, Artisan City, AC 12345',
-//     items: [
-//       {
-//         id: '1',
-//         name: 'Custom Mandala Art Canvas',
-//         price: 45.99,
-//         description: 'Beautiful handcrafted mandala art',
-//         image: 'https://images.unsplash.com/photo-1761034036989-24640be78e90',
-//         category: 'wall-art',
-//         customizable: true,
-//         quantity: 1,
-//         customizations: {
-//           text: 'Peace & Harmony',
-//           color: 'Purple & Gold'
-//         }
-//       },
-//       {
-//         id: '2',
-//         name: 'Handmade Bookmark Set',
-//         price: 12.99,
-//         description: 'Set of 3 artistic bookmarks',
-//         image: 'https://images.unsplash.com/photo-1760269720423-6d2d6fa492b0',
-//         category: 'bookmarks',
-//         customizable: true,
-//         quantity: 2
-//       }
-//     ],
-//     total: 71.97,
-//     status: 'delivered',
-//     payment_status: 'completed',
-//     payment_method: 'cod',
-//     createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-//   },
-//   {
-//     id: 'demo002',
-//     order_number: 'ORD-DEMO-002',
-//     customerName: 'Demo User',
-//     customerEmail: 'demo@example.com',
-//     customerPhone: '+1 (555) 123-4567',
-//     address: '123 Craft Street, Artisan City, AC 12345',
-//     shipping_address: '123 Craft Street, Artisan City, AC 12345',
-//     items: [
-//       {
-//         id: '3',
-//         name: 'Custom Phone Case',
-//         price: 24.99,
-//         description: 'Personalized phone case with your design',
-//         image: 'https://images.unsplash.com/photo-1743670827800-61375c99e7a7',
-//         category: 'phone-cases',
-//         customizable: true,
-//         quantity: 1,
-//         customizations: {
-//           text: 'Sarah M.',
-//           color: 'Rose Gold'
-//         }
-//       }
-//     ],
-//     total: 24.99,
-//     status: 'shipped',
-//     payment_status: 'completed',
-//     payment_method: 'supabase',
-//     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-//   },
-//   {
-//     id: 'demo003',
-//     order_number: 'ORD-DEMO-003',
-//     customerName: 'Demo User',
-//     customerEmail: 'demo@example.com',
-//     customerPhone: '+1 (555) 123-4567',
-//     address: '123 Craft Street, Artisan City, AC 12345',
-//     shipping_address: '123 Craft Street, Artisan City, AC 12345',
-//     items: [
-//       {
-//         id: '4',
-//         name: 'Personalized Mug',
-//         price: 18.99,
-//         description: 'Custom ceramic mug with name',
-//         image: 'https://images.unsplash.com/photo-1705952297177-619746d21f7c',
-//         category: 'gifts',
-//         customizable: true,
-//         quantity: 3,
-//         customizations: {
-//           text: 'Best Mom Ever',
-//           color: 'Mint Green'
-//         }
-//       },
-//       {
-//         id: '5',
-//         name: 'Wall Art Decor',
-//         price: 38.99,
-//         description: 'Handmade wall decoration',
-//         image: 'https://images.unsplash.com/photo-1760192159270-591cfd5f11bd',
-//         category: 'wall-decor',
-//         customizable: false,
-//         quantity: 1
-//       }
-//     ],
-//     total: 95.96,
-//     status: 'processing',
-//     payment_status: 'pending',
-//     payment_method: 'cod',
-//     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-//   },
-//   {
-//     id: 'demo004',
-//     order_number: 'ORD-DEMO-004',
-//     customerName: 'Demo User',
-//     customerEmail: 'demo@example.com',
-//     customerPhone: '+1 (555) 123-4567',
-//     address: '123 Craft Street, Artisan City, AC 12345',
-//     shipping_address: '123 Craft Street, Artisan City, AC 12345',
-//     items: [
-//       {
-//         id: '1',
-//         name: 'Custom Mandala Art Canvas',
-//         price: 45.99,
-//         description: 'Beautiful handcrafted mandala art',
-//         image: 'https://images.unsplash.com/photo-1761034036989-24640be78e90',
-//         category: 'wall-art',
-//         customizable: true,
-//         quantity: 2,
-//         customizations: {
-//           color: 'Blue & Silver'
-//         }
-//       }
-//     ],
-//     total: 91.98,
-//     status: 'pending',
-//     payment_status: 'pending',
-//     payment_method: 'cod',
-//     createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-//   }
-// ];
-
-// // Initialize with demo data if needed (for development)
-// if (process.env.NODE_ENV === 'development' && useOrderStore.getState().orders.length === 0) {
-//   useOrderStore.setState({ orders: demoOrders });
-// }

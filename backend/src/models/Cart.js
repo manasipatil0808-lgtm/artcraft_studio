@@ -47,8 +47,4 @@ const Cart = sequelize.define('Cart', {
     ]
 });
 
-// Define associations
-Cart.belongsTo(User, { foreignKey: 'user_id' });
-Cart.belongsTo(Product, { foreignKey: 'product_id' });
-
 module.exports = Cart;

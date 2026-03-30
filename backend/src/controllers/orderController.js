@@ -279,7 +279,7 @@ exports.getOrderDetails = async (req, res) => {
     const order = await Order.findOne({
       where: {
         id,
-        ...(req.user.role !== "admin" && { user_id: req.user.id }),
+        ...(req.user.role !== "seller" && req.user.role !== "admin" && { user_id: req.user.id }),
       },
       attributes: [
         "id",

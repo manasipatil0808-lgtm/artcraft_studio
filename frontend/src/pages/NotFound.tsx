@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Home, Search } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 export function NotFound() {
   return (

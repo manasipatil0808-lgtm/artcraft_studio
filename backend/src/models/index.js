@@ -4,16 +4,19 @@ const Cart = require('./Cart');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const Payment = require('./Payment');
+const Review = require('./Review');
 
 // Define all associations
 const setupAssociations = () => {
     // User associations
     User.hasMany(Cart, { foreignKey: 'user_id' });
     User.hasMany(Order, { foreignKey: 'user_id' });
+    User.hasMany(Review, { foreignKey: 'user_id' });
     
     // Product associations
     Product.hasMany(Cart, { foreignKey: 'product_id' });
     Product.hasMany(OrderItem, { foreignKey: 'product_id' });
+    Product.hasMany(Review, { foreignKey: 'product_id' });
     
     // Order associations
     Order.belongsTo(User, { foreignKey: 'user_id' });
@@ -30,6 +33,10 @@ const setupAssociations = () => {
     
     // Payment associations
     Payment.belongsTo(Order, { foreignKey: 'order_id' });
+
+    // Review associations
+    Review.belongsTo(User, { foreignKey: 'user_id' });
+    Review.belongsTo(Product, { foreignKey: 'product_id' });
 };
 
 module.exports = {
@@ -39,5 +46,6 @@ module.exports = {
     Order,
     OrderItem,
     Payment,
+    Review,
     setupAssociations
 };

@@ -41,7 +41,4 @@ const Payment = sequelize.define('Payment', {
     underscored: true
 });
 
-Payment.belongsTo(Order, { foreignKey: 'order_id' });
-Order.hasOne(Payment, { foreignKey: 'order_id' });
-
 module.exports = Payment;

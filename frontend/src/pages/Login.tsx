@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { Mail, Lock, LogIn, Sparkles } from 'lucide-react';
-import { useAuthStore, type UserRole } from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('user');
 
   const { login, isLoading, clearError } = useAuthStore();
   const navigate = useNavigate();
@@ -18,11 +17,17 @@ export function Login() {
     
     try {
       await login(email, password);
-      toast.success('Logged in successful')
-      // Redirect based on role - will be handled by the store
-      navigate('/');
-    } catch (err) {
-      // Error is already set in store
+      toast.success('Logged in successfully!');
+
+      // Get updated user from store after login
+      const user = useAuthStore.getState().user;
+      if (user?.role === 'seller' || user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Login failed');
       console.error('Login failed:', err);
     }
   };
@@ -44,34 +49,6 @@ export function Login() {
           <h2 className="text-3xl font-display font-bold text-center mb-8">Welcome Back!</h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold block ml-1">Role</label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setRole('user')}
-                  className={`py-2 px-4 border-2 border-gray-800 font-bold transition-all ${
-                    role === 'user' 
-                      ? 'bg-pink-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
-                      : 'bg-white text-gray-800 hover:bg-pink-50'
-                  }`}
-                >
-                  Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('admin')}
-                  className={`py-2 px-4 border-2 border-gray-800 font-bold transition-all ${
-                    role === 'admin' 
-                      ? 'bg-purple-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
-                      : 'bg-white text-gray-800 hover:bg-purple-50'
-                  }`}
-                >
-                  Seller
-                </button>
-              </div>
-            </div>
-
             <div className="space-y-2">
               <label className="text-sm font-bold block ml-1">Email Address</label>
               <div className="relative">

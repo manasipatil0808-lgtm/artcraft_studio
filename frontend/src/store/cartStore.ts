@@ -77,7 +77,7 @@ export const useCartStore = create<CartState>()(
             }));
 
             const total = localItems.reduce(
-              (acc, item) => acc + item.price * item.quantity,
+              (acc: number, item: { price: number; quantity: number }) => acc + item.price * item.quantity,
               0,
             );
 

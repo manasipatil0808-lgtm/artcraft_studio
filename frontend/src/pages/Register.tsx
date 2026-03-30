@@ -3,33 +3,34 @@ import { useNavigate, Link } from 'react-router';
 import { toast } from 'sonner';
 import { Mail, Lock, User as UserIcon, Palette, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import type { UserRole } from '../store/authStore';
 
 export function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('user');
-  const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<UserRole>('customer');
   
-  const register = useAuthStore((state) => state.register);
+  const { register, isLoading, clearError } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    clearError();
 
-    // Mock registration delay
-    setTimeout(() => {
-      register(name, email, password , role);
+    try {
+      await register(name, email, password, role);
       toast.success(`Welcome to the community, ${name}!`);
       
-      if (role === 'admin') {
+      if (role === 'seller') {
         navigate('/admin');
       } else {
         navigate('/');
       }
-      setIsLoading(false);
-    }, 1000);
+    } catch (err: any) {
+      toast.error(err.message || 'Registration failed');
+      console.error('Registration failed:', err);
+    }
   };
 
   return (
@@ -54,27 +55,32 @@ export function Register() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => setRole('user')}
+                  onClick={() => setRole('customer')}
                   className={`py-2 px-4 border-2 border-gray-800 font-bold transition-all ${
-                    role === 'user' 
+                    role === 'customer' 
                       ? 'bg-blue-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
                       : 'bg-white text-gray-800 hover:bg-blue-50'
                   }`}
                 >
-                  Customer
+                  🛒 Customer
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRole('admin')}
+                  onClick={() => setRole('seller')}
                   className={`py-2 px-4 border-2 border-gray-800 font-bold transition-all ${
-                    role === 'admin' 
+                    role === 'seller' 
                       ? 'bg-purple-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
                       : 'bg-white text-gray-800 hover:bg-purple-50'
                   }`}
                 >
-                  Seller
+                  🎨 Seller
                 </button>
               </div>
+              <p className="text-xs text-gray-500 ml-1">
+                {role === 'seller' 
+                  ? 'Sellers can list and manage products on the store.' 
+                  : 'Customers can browse and purchase handcrafted products.'}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -114,12 +120,14 @@ export function Register() {
                 <input
                   type="password"
                   required
+                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-3 border-2 border-gray-800 focus:outline-none focus:ring-0 focus:border-blue-500 transition-colors"
                 />
               </div>
+              <p className="text-xs text-gray-500 ml-1">Must be at least 6 characters</p>
             </div>
 
             <button

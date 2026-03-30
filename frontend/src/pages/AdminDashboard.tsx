@@ -13,10 +13,9 @@ import { toast } from "sonner";
 import { useOrderStore } from "../store/orderStore";
 import {
   useProductStore,
-  fileToBase64,
   createProductFormData,
 } from "../store/productStore";
-import type { Product } from "../types";
+import type { Product } from "../store/productStore";
 
 interface ProductFormData {
   name: string;
@@ -50,7 +49,7 @@ export function AdminDashboard() {
     price: "",
     description: "",
     category: "Home Decor",
-    stock_quantity: 10,
+    stock_quantity: 0,
     customizable: false,
   });
 
@@ -67,7 +66,7 @@ export function AdminDashboard() {
       price: "",
       description: "",
       category: "Home Decor",
-      stock_quantity: 10,
+      stock_quantity: 0,
       customizable: false,
     });
     setImageFile(null);
@@ -80,7 +79,7 @@ export function AdminDashboard() {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      price: product.price.replace("₹", ""),
+      price: String(product.price).replace("₹", ""),
       description: product.description || "",
       category: product.category || "Home Decor",
       stock_quantity: product.stock_quantity || 10,
@@ -164,7 +163,7 @@ export function AdminDashboard() {
           toast.success("Product updated with new image");
         } else {
           // Update without image
-          await updateProduct(editingProduct.id, productData);
+          await updateProduct(editingProduct.id, productData as any);
           toast.success("Product updated successfully");
         }
       } else {
@@ -188,7 +187,7 @@ export function AdminDashboard() {
     } catch (error: any) {
       toast.error(
         error.message ||
-          `Failed to ${editingProduct ? "update" : "add"} product`,
+        `Failed to ${editingProduct ? "update" : "add"} product`,
       );
     }
   };
@@ -206,9 +205,9 @@ export function AdminDashboard() {
   };
 
   // Handle order status update
-  const handleStatusUpdate = async (orderId: string, status: string) => {
+  const handleStatusUpdate = async (orderId: string | number, status: string) => {
     try {
-      await updateStatus(orderId, status);
+      await updateStatus(orderId, status as any);
       toast.success(`Order status updated to ${status}`);
     } catch (error: any) {
       toast.error(error.message || "Failed to update order status");
@@ -218,7 +217,7 @@ export function AdminDashboard() {
   return (
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-4xl font-display font-bold mb-8 text-gray-800">
-        Admin Dashboard
+        Seller Dashboard
       </h1>
 
       {error && (
@@ -493,13 +492,12 @@ export function AdminDashboard() {
                         </td>
                         <td className="p-3">
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-bold ${
-                              product.stock_quantity > 10
-                                ? "bg-green-100 text-green-700"
-                                : product.stock_quantity > 0
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
-                            }`}
+                            className={`px-2 py-1 rounded-full text-xs font-bold ${product.stock_quantity > 10
+                              ? "bg-green-100 text-green-700"
+                              : product.stock_quantity > 0
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-700"
+                              }`}
                           >
                             {product.stock_quantity}
                           </span>
@@ -570,17 +568,16 @@ export function AdminDashboard() {
                       <select
                         value={order.status}
                         onChange={(e) =>
-                          handleStatusUpdate(order.id, e.target.value)
+                          handleStatusUpdate(String(order.id), e.target.value)
                         }
-                        className={`px-3 py-1 rounded-full text-sm font-bold border-2 ${
-                          order.status === "delivered"
-                            ? "bg-green-100 text-green-700 border-green-200"
-                            : order.status === "shipped"
-                              ? "bg-blue-100 text-blue-700 border-blue-200"
-                              : order.status === "processing"
-                                ? "bg-purple-100 text-purple-700 border-purple-200"
-                                : "bg-yellow-100 text-yellow-700 border-yellow-200"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm font-bold border-2 ${order.status === "delivered"
+                          ? "bg-green-100 text-green-700 border-green-200"
+                          : order.status === "shipped"
+                            ? "bg-blue-100 text-blue-700 border-blue-200"
+                            : order.status === "processing"
+                              ? "bg-purple-100 text-purple-700 border-purple-200"
+                              : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                          }`}
                       >
                         <option value="pending">Pending</option>
                         <option value="processing">Processing</option>

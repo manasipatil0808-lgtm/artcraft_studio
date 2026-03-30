@@ -31,23 +31,16 @@ const User = sequelize.define(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM("user", "admin"),
-      defaultValue: "user",
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
+      type: DataTypes.ENUM("customer", "seller", "admin"),
+      defaultValue: "customer",
     },
   },
   {
     tableName: "users",
-    timestamps: true, // This enables createdAt and updatedAt
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    underscored: true,
     hooks: {
       beforeCreate: async (user) => {
         if (user.password) {
@@ -60,13 +53,6 @@ const User = sequelize.define(
         }
       },
     },
-  },
-  {
-    tableName: "users",
-    timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
-    underscored: true,
   },
 );
 

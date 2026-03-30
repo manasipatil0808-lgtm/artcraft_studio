@@ -1,6 +1,6 @@
 const express = require('express');
 const orderController = require('../controllers/orderController');
-const { authenticate, authorizeAdmin } = require('../middleware/auth');
+const { authenticate, authorizeSeller } = require('../middleware/auth');
 const { body } = require('express-validator');
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.get('/:id', orderController.getOrderDetails);
 router.put('/cancel/:id', orderController.cancelOrder);
 
 // Admin routes
-router.get('/admin/all', authorizeAdmin, orderController.getAllOrders);
-router.put('/admin/:id/status', authorizeAdmin, orderController.updateOrderStatus);
+router.get('/admin/all', authorizeSeller, orderController.getAllOrders);
+router.put('/admin/:id/status', authorizeSeller, orderController.updateOrderStatus);
 
 module.exports = router;

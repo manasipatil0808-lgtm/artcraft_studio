@@ -29,7 +29,7 @@ const Order = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("pending", "processing", "completed", "cancelled"),
+      type: DataTypes.ENUM("pending", "processing", "shipped", "delivered", "cancelled"),
       defaultValue: "pending",
     },
     payment_status: {
@@ -49,8 +49,5 @@ const Order = sequelize.define(
     underscored: true, // Use snake_case for auto-generated fields
   },
 );
-
-Order.belongsTo(User, { foreignKey: "user_id" });
-User.hasMany(Order, { foreignKey: "user_id" });
 
 module.exports = Order;

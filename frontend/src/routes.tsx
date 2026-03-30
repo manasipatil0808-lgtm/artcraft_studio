@@ -1,5 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Home } from "./pages/Home";
+import { About } from "./pages/About";
+import { Contact } from "./pages/Contact";
 import { Shop } from "./pages/Shop";
 import { ProductDetails } from "./pages/ProductDetails";
 import { Cart } from "./pages/Cart";
@@ -19,6 +21,8 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { index: true, Component: Home },
+      { path: "about", Component: About },
+      { path: "contact", Component: Contact },
       { path: "shop", Component: Shop },
       { path: "product/:id", Component: ProductDetails },
       { path: "cart", Component: Cart },
@@ -30,7 +34,7 @@ export const router = createBrowserRouter([
       { 
         path: "admin", 
         element: (
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['seller', 'admin']}>
             <AdminDashboard />
           </ProtectedRoute>
         ) 

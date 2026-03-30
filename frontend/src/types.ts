@@ -1,11 +1,17 @@
+export type UserRole = 'customer' | 'seller' | 'admin';
+
 export interface Product {
-  id: string;
+  id: number;
   name: string;
-  price: number;
+  price: string;
   description: string;
-  image: string;
+  image: string | null;
+  image_url?: string;
   category: string;
   customizable: boolean;
+  stock_quantity: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartItem extends Product {
@@ -18,13 +24,13 @@ export interface CartItem extends Product {
 }
 
 export interface Order {
-  id: string;
+  id: string | number;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
   address: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: string;
 }

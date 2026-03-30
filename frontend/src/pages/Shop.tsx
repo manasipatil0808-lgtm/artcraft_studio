@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import { Search, Filter } from 'lucide-react';
 import { HandDrawnHeart } from '../components/HandDrawnIcons';
-import api from '../services/api';
-import { useProductStore } from '../store/productStore';
+
+import { useProductStore, getProductImageSrc } from '../store/productStore';
 export function Shop() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -12,18 +12,18 @@ export function Shop() {
   // const [products,setProducts] = useState([]);
 
   const {
-      products,
-      fetchProducts,
-    } = useProductStore();
-  
-    useEffect(()=>{
-      fetchProducts(1, 100);
-    },[])
+    products,
+    fetchProducts,
+  } = useProductStore();
+
+  useEffect(() => {
+    fetchProducts(1, 100);
+  }, [])
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))];
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product?.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          product?.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product?.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || product?.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -32,20 +32,20 @@ export function Shop() {
     <div className="fade-in-up">
       <h1 className="text-6xl font-serif font-semibold text-center mb-4 text-gray-800">Our Collection</h1>
       <p className="text-center text-gray-500 mb-12 text-lg font-light">Handcrafted with love, just for you</p>
-      
+
       {/* Filters and Search */}
       <div className="watercolor-card flex flex-col md:flex-row justify-between items-center mb-12 gap-6 p-6">
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search for something special..." 
+          <input
+            type="text"
+            placeholder="Search for something special..."
             className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 transition-all text-base"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         <div className="relative w-full md:w-auto min-w-[220px]">
           <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
           <select
@@ -73,16 +73,16 @@ export function Shop() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredProducts.map((product, index) => (
             <Link to={`/product/${product.id}`} key={product.id} className="group h-full">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="watercolor-card h-full flex flex-col product-hover-animate"
               >
                 <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-brand-50 to-mint-50 rounded-t-xl">
-                  <img 
-                    src={product?.image_url && product?.image } 
-                    alt={product?.name} 
+                  <img
+                    src={getProductImageSrc(product)}
+                    alt={product?.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
                   {product.customizable && (
@@ -109,7 +109,7 @@ export function Shop() {
       ) : (
         <div className="text-center py-20">
           <p className="text-3xl font-serif text-gray-400 mb-4">No products found matching your criteria.</p>
-          <button 
+          <button
             onClick={() => { setSearchTerm(''); setCategoryFilter('All'); }}
             className="hand-drawn-btn"
           >

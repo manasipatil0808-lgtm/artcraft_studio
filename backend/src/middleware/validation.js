@@ -19,7 +19,12 @@ exports.validateRegister = [
     .withMessage("Password is required")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
-  body("role").trim().notEmpty().withMessage("Role is required"),
+  body("role")
+    .trim()
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn(["customer", "seller"])
+    .withMessage("Role must be either 'customer' or 'seller'"),
 ];
 
 exports.validateLogin = [

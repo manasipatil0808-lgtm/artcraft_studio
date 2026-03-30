@@ -180,8 +180,8 @@ export function OrderSuccess() {
 
     setSendingEmail(true);
     try {
-      await api.sendInvoiceEmail(order.id, order.customerEmail, {
-        orderNumber: order.id,
+      await api.sendInvoiceEmail(String(order.id), order.customerEmail, {
+        orderNumber: String(order.id),
         customerName: order.customerName,
         items: order.items,
         total: numericTotal,

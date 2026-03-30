@@ -1,14 +1,14 @@
 import { Outlet, Link, NavLink, useNavigate } from "react-router";
 import { useState } from "react";
 import { Toaster } from 'sonner';
-import { 
-  HandDrawnCart, 
-  HandDrawnUser, 
-  HandDrawnGift, 
-  HandDrawnLogout, 
-  HandDrawnMenu, 
+import {
+  HandDrawnCart,
+  HandDrawnUser,
+  HandDrawnGift,
+  HandDrawnLogout,
+  HandDrawnMenu,
   HandDrawnX,
-  HandDrawnPackage 
+  HandDrawnPackage
 } from "./HandDrawnIcons";
 import { useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
@@ -28,7 +28,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-gray-700">
-      <ScrollToTop/>
+      <ScrollToTop />
       <Toaster position="top-right" richColors />
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 md:px-12 py-5 flex justify-between items-center">
@@ -41,32 +41,44 @@ export function Layout() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-10">
-            <NavLink 
-              to="/" 
+            <NavLink
+              to="/"
               className={({ isActive }) => `text-lg font-medium hover:text-brand-600 transition-colors duration-300 ${isActive ? 'text-brand-600 border-b-2 border-brand-400' : 'text-gray-600'}`}
             >
               Home
             </NavLink>
-            <NavLink 
-              to="/shop" 
+            <NavLink
+              to="/shop"
               className={({ isActive }) => `text-lg font-medium hover:text-brand-600 transition-colors duration-300 ${isActive ? 'text-brand-600 border-b-2 border-brand-400' : 'text-gray-600'}`}
             >
               Shop
             </NavLink>
-            {isAuthenticated && user?.role === 'user' && (
-              <NavLink 
-                to="/my-orders" 
+            <NavLink
+              to="/about"
+              className={({ isActive }) => `text-lg font-medium hover:text-brand-600 transition-colors duration-300 ${isActive ? 'text-brand-600 border-b-2 border-brand-400' : 'text-gray-600'}`}
+            >
+              About
+            </NavLink>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) => `text-lg font-medium hover:text-brand-600 transition-colors duration-300 ${isActive ? 'text-brand-600 border-b-2 border-brand-400' : 'text-gray-600'}`}
+            >
+              Contact
+            </NavLink>
+            {isAuthenticated && user?.role === 'customer' && (
+              <NavLink
+                to="/my-orders"
                 className={({ isActive }) => `text-lg font-medium hover:text-brand-600 transition-colors duration-300 ${isActive ? 'text-brand-600 border-b-2 border-brand-400' : 'text-gray-600'}`}
               >
                 My Orders
               </NavLink>
             )}
-            {user?.role === 'admin' && (
-              <NavLink 
-                to="/admin" 
+            {(user?.role === 'seller' || user?.role === 'admin') && (
+              <NavLink
+                to="/admin"
                 className={({ isActive }) => `text-lg font-medium hover:text-brand-600 transition-colors duration-300 ${isActive ? 'text-brand-600 border-b-2 border-brand-400' : 'text-gray-600'}`}
               >
-                Admin
+                {user?.role === 'admin' ? 'Admin Dashboard' : 'Seller Dashboard'}
               </NavLink>
             )}
           </nav>
@@ -75,7 +87,7 @@ export function Layout() {
             <Link to="/cart" className="relative p-2.5 hover:bg-brand-50 rounded-full transition-all duration-300 group">
               <HandDrawnCart className="w-6 h-6 text-gray-700 group-hover:text-brand-600 transition-colors" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-brand-500 to-brand-400 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-brand-500 to-brand-400 text-black text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                   {cartCount}
                 </span>
               )}
@@ -85,9 +97,9 @@ export function Layout() {
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-sm font-semibold leading-tight text-gray-800">{user?.name}</span>
-                  <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">{user?.role}</span>
+                  <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">{user?.role === 'admin' ? 'Admin' : user?.role === 'seller' ? 'Seller' : 'Customer'}</span>
                 </div>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="p-2.5 hover:bg-red-50 text-gray-600 hover:text-red-500 rounded-full transition-all duration-300"
                   title="Logout"
@@ -96,16 +108,16 @@ export function Layout() {
                 </button>
               </div>
             ) : (
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="bg-white border-2 border-brand-500 text-brand-600 px-6 py-2 rounded-full font-semibold hover:bg-brand-500 hover:text-white transition-all duration-300 flex items-center gap-2 shadow-sm"
               >
                 <HandDrawnUser className="w-4 h-4" />
                 <span className="hidden sm:inline">Sign In</span>
               </Link>
             )}
-            
-            <button 
+
+            <button
               className="md:hidden p-2 hover:bg-brand-50 rounded-full transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
@@ -120,13 +132,17 @@ export function Layout() {
             <nav className="flex flex-col gap-5">
               <Link to="/" className="text-lg font-medium hover:text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>Home</Link>
               <Link to="/shop" className="text-lg font-medium hover:text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>Shop</Link>
-              {isAuthenticated && user?.role === 'user' && (
+              <Link to="/about" className="text-lg font-medium hover:text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>About</Link>
+              <Link to="/contact" className="text-lg font-medium hover:text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+              {isAuthenticated && user?.role === 'customer' && (
                 <Link to="/my-orders" className="text-lg font-medium hover:text-brand-600 flex items-center gap-2 transition-colors" onClick={() => setIsMenuOpen(false)}>
                   <HandDrawnPackage className="w-5 h-5" /> My Orders
                 </Link>
               )}
-              {user?.role === 'admin' && (
-                <Link to="/admin" className="text-lg font-medium hover:text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>Admin</Link>
+              {(user?.role === 'seller' || user?.role === 'admin') && (
+                <Link to="/admin" className="text-lg font-medium hover:text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  {user?.role === 'admin' ? 'Admin Dashboard' : 'Seller Dashboard'}
+                </Link>
               )}
               {!isAuthenticated && (
                 <Link to="/login" className="text-lg font-semibold text-brand-600 transition-colors" onClick={() => setIsMenuOpen(false)}>Sign In</Link>

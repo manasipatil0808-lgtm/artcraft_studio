@@ -4,8 +4,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const keyId = process.env.RAZORPAY_KEY_ID;
-const keySecret = process.env.RAZORPAY_KEY_SECRET;
+const keyId = process.env.RAZORPAY_KEY_ID || "rzp_test_SVSDsBnFYB2WI";
+const keySecret = process.env.RAZORPAY_KEY_SECRET || "4RA1zg0wZhT4Bm9pu4BGWgoi";
 
 if (!keyId || !keySecret) {
   console.warn("⚠️ Razorpay credentials missing. Online payment will be unavailable.");

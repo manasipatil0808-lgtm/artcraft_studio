@@ -4,27 +4,42 @@ import { Package, Clock, Truck, CheckCircle, ShoppingBag } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useOrderStore } from '../store/orderStore';
 import { useAuthStore } from '../store/authStore';
+import { useEffect } from 'react';
 
 export function MyOrders() {
-  const { orders, loading, error, fetchUserOrders, updateStatus } = useOrderStore();
-  const user = useAuthStore((state) => state.user);
+  const { orders, fetchUserOrders, loading } = useOrderStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  // Filter orders by user email (since orders are stored with customerEmail)
-  const userOrders = orders.filter(order => order.customerEmail === user?.email);
+  // Fetch orders from backend on mount (backend already filters by user_id)
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserOrders();
+    }
+  }, [isAuthenticated, fetchUserOrders]);
 
+  // Backend getUserOrders already filters by user_id, no client-side filter needed
+  const userOrders = orders;
   if (!isAuthenticated) {
     return (
       <div className="text-center py-20">
         <Package className="w-24 h-24 text-gray-300 mx-auto mb-6" />
         <h2 className="text-3xl font-display text-gray-800 mb-4">Please Sign In</h2>
         <p className="text-gray-600 mb-8 font-hand text-xl">You need to be logged in to view your orders.</p>
-        <Link 
-          to="/login" 
+        <Link
+          to="/login"
           className="inline-block bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-colors font-bold shadow-md"
         >
           Sign In
         </Link>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-20">
+        <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+        <p className="text-gray-600 text-lg">Loading your orders...</p>
       </div>
     );
   }
@@ -35,8 +50,8 @@ export function MyOrders() {
         <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-6" />
         <h2 className="text-3xl font-display text-gray-800 mb-4">No Orders Yet</h2>
         <p className="text-gray-600 mb-8 font-hand text-xl">You haven't placed any orders yet. Start shopping!</p>
-        <Link 
-          to="/shop" 
+        <Link
+          to="/shop"
           className="inline-block bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-colors font-bold shadow-md"
         >
           Browse Products
@@ -96,14 +111,14 @@ export function MyOrders() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
                   <p className="text-sm text-gray-500 font-bold">Order ID</p>
-                  <p className="text-lg font-bold font-mono">#{order.id.slice(0, 12).toUpperCase()}</p>
+                  <p className="text-lg font-bold font-mono">#{String(order.id).slice(0, 12).toUpperCase()}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 font-bold">Order Date</p>
-                  <p className="text-lg font-bold">{new Date(order.createdAt).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  <p className="text-lg font-bold">{new Date(order.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}</p>
                 </div>
                 <div>
@@ -115,7 +130,7 @@ export function MyOrders() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 font-bold">Total Amount</p>
-                  <p className="text-2xl font-bold text-pink-600">${order.total.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-pink-600">₹{typeof order.total === 'number' ? order.total.toFixed(2) : order.total}</p>
                 </div>
               </div>
             </div>
@@ -150,8 +165,8 @@ export function MyOrders() {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg text-pink-600">${(item.price * item.quantity).toFixed(2)}</p>
-                      <p className="text-gray-500 text-sm">${item.price.toFixed(2)} each</p>
+                      <p className="font-bold text-lg text-pink-600">₹{(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-gray-500 text-sm">₹{item.price.toFixed(2)} each</p>
                     </div>
                   </div>
                 ))}

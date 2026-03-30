@@ -4,10 +4,10 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = process.env.SMTP_PORT;
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
+const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+const smtpPort = process.env.SMTP_PORT || 587;
+const smtpUser = process.env.SMTP_USER || "artcraftstudio0821@gmail.com";
+const smtpPass = process.env.SMTP_PASS || "fuzchsytbjyzvlus";
 
 let transporter = null;
 

@@ -403,6 +403,46 @@ const api = {
     }
     return data;
   },
+
+  // Review endpoints
+  getProductReviews: async (productId: number) => {
+    const res = await fetch(`${API_BASE_URL}/reviews/product/${productId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to fetch reviews");
+    return data;
+  },
+
+  addReview: async (productId: number, rating: number, comment: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Please login to add a review");
+
+    const res = await fetch(`${API_BASE_URL}/reviews`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ productId, rating, comment }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to add review");
+    return data;
+  },
+
+  deleteReview: async (reviewId: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Please login to delete a review");
+
+    const res = await fetch(`${API_BASE_URL}/reviews/${reviewId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to delete review");
+    return data;
+  },
 };
 
 export default api;

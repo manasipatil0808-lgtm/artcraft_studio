@@ -1,49 +1,43 @@
-// src/models/OrderItem.js
+// src/models/Review.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const Order = require("./Order");
-const Product = require("./Product");
 
-const OrderItem = sequelize.define(
-  "OrderItem",
+const Review = sequelize.define(
+  "Review",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    order_id: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: Order,
-        key: "id",
-      },
     },
     product_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: Product,
-        key: "id",
-      },
     },
-    quantity: {
+    rating: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        min: 1,
+        max: 5,
+      },
     },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
+    comment: {
+      type: DataTypes.TEXT,
       allowNull: false,
     },
   },
   {
-    tableName: "order_items",
+    tableName: "reviews",
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
     underscored: true,
-  },
+  }
 );
 
-module.exports = OrderItem;
+module.exports = Review;

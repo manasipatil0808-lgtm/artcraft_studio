@@ -28,7 +28,7 @@ Thumbs.db # Windows specific
 # Dependency folders
 node_modules/
 .venv/
-
+.env
 # Compiled files
 *.pyc # Python compiled files
 *.class # Java compiled files
