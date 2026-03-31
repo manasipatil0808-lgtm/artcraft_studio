@@ -2,12 +2,15 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import api from "../services/api";
 
+const API_BASE_URL = "http://localhost:5000";
+
 export interface OrderItem {
   id: string | number;
   name: string;
   price: number;
   description?: string;
   image?: string;
+  image_url: string;
   category?: string;
   customizable?: boolean;
   quantity: number;
@@ -15,6 +18,7 @@ export interface OrderItem {
     text?: string;
     color?: string;
     image?: string;
+    image_url: string;
     [key: string]: any;
   };
 }
@@ -49,7 +53,10 @@ interface OrderState {
   fetchOrderDetails: (id: string | number) => Promise<Order | null>;
 
   // Order actions
-  createOrder: (shipping_address: string, payment_method?: string) => Promise<any>;
+  createOrder: (
+    shipping_address: string,
+    payment_method?: string,
+  ) => Promise<any>;
   updateStatus: (id: string | number, status: Order["status"]) => Promise<void>;
   cancelOrder: (id: string | number) => Promise<void>;
 
@@ -79,16 +86,30 @@ const formatOrderFromBackend = (backendOrder: any): Order => {
   };
 
   const items = (backendOrder.OrderItems || backendOrder.items || []).map(
-    (item: any) => ({
-      id: item.product_id || item.id,
-      name: item.Product?.name || item.name || "Product",
-      price: parsePrice(item.price),
-      quantity: item.quantity || 1,
-      image: item.Product?.image_url || item.image,
-      description: item.Product?.description,
-      category: item.Product?.category,
-      customizations: item.customizations || {},
-    }),
+    (item: any) => {
+      // Resolve image_url: prefer base64, then resolve relative paths
+      let resolvedImageUrl = item.Product?.image_url || item.image_url || '';
+      if (resolvedImageUrl && !resolvedImageUrl.startsWith('http') && !resolvedImageUrl.startsWith('data:')) {
+        resolvedImageUrl = `${API_BASE_URL}${resolvedImageUrl}`;
+      }
+
+      let resolvedImage = item.Product?.image || item.image || '';
+      if (resolvedImage === '[IMAGE_STORED]') {
+        resolvedImage = '';
+      }
+
+      return {
+        id: item.product_id || item.id,
+        name: item.Product?.name || item.name || "Product",
+        price: parsePrice(item.price),
+        quantity: item.quantity || 1,
+        image: resolvedImage || resolvedImageUrl,
+        image_url: resolvedImageUrl,
+        description: item.Product?.description,
+        category: item.Product?.category,
+        customizations: item.customizations || {},
+      };
+    },
   );
 
   return {
@@ -190,7 +211,10 @@ export const useOrderStore = create<OrderState>()(
       },
 
       // Create new order
-      createOrder: async (shipping_address: string, payment_method: string = "cod") => {
+      createOrder: async (
+        shipping_address: string,
+        payment_method: string = "cod",
+      ) => {
         set({ loading: true, error: null });
         try {
           const response = await api.placeOrder(
@@ -261,7 +285,9 @@ export const useOrderStore = create<OrderState>()(
           const numId = Number(id);
           set((state) => ({
             orders: state.orders.map((order) =>
-              Number(order.id) === numId ? { ...order, status: "cancelled" } : order,
+              Number(order.id) === numId
+                ? { ...order, status: "cancelled" }
+                : order,
             ),
             currentOrder:
               state.currentOrder && Number(state.currentOrder.id) === numId
@@ -314,4 +340,3 @@ export const useOrderStore = create<OrderState>()(
     },
   ),
 );
-

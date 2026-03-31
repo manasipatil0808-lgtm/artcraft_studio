@@ -163,7 +163,7 @@ export function Cart() {
                 alt={item.name} 
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/150x150?text=No+Image';
                 }}
               />
             </div>

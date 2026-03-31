@@ -3,6 +3,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import api from "../services/api";
 
+const API_BASE_URL = "http://localhost:5000";
+
 export interface CartItem {
   id: string;
   productId: number;
@@ -66,15 +68,30 @@ export const useCartStore = create<CartState>()(
           const cartData = await api.getCart();
 
           if (cartData && cartData.items) {
-            const localItems = cartData.items.map((item: any) => ({
-              id: item.id?.toString() || Date.now().toString(),
-              productId: item.product_id,
-              name: item.Product?.name || "Product",
-              price: parseFloat(item.Product?.price) || 0,
-              image: item.Product?.image_url || item.Product?.image || "",
-              quantity: item.quantity,
-              customizations: item.customizations || {},
-            }));
+            const localItems = cartData.items.map((item: any) => {
+              // Resolve image: prefer base64, fall back to image_url with full URL
+              let image = "";
+              if (item.Product?.image && item.Product.image !== "[IMAGE_STORED]" && !item.Product.image.startsWith("/")) {
+                // base64 or full URL
+                image = item.Product.image;
+              } else if (item.Product?.image_url) {
+                let url = item.Product.image_url;
+                if (url && !url.startsWith("http") && !url.startsWith("data:")) {
+                  url = `${API_BASE_URL}${url}`;
+                }
+                image = url;
+              }
+
+              return {
+                id: item.id?.toString() || Date.now().toString(),
+                productId: item.product_id,
+                name: item.Product?.name || "Product",
+                price: parseFloat(item.Product?.price) || 0,
+                image,
+                quantity: item.quantity,
+                customizations: item.customizations || {},
+              };
+            });
 
             const total = localItems.reduce(
               (acc: number, item: { price: number; quantity: number }) => acc + item.price * item.quantity,

@@ -10,6 +10,7 @@ export function MyOrders() {
   const { orders, fetchUserOrders, loading } = useOrderStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
+  console.log(orders)
   // Fetch orders from backend on mount (backend already filters by user_id)
   useEffect(() => {
     if (isAuthenticated) {
@@ -142,7 +143,20 @@ export function MyOrders() {
                 {order.items.map((item, idx) => (
                   <div key={idx} className="flex gap-4 items-start">
                     <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img 
+                        src={(() => {
+                          const url = item?.image_url || item?.image || '';
+                          if (url && !url.startsWith('http') && !url.startsWith('data:') && url !== '[IMAGE_STORED]') {
+                            return `http://localhost:5000${url}`;
+                          }
+                          return url || 'https://placehold.co/80x80?text=No+Image';
+                        })()}
+                        alt={item.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/80x80?text=No+Image';
+                        }}
+                      />
                     </div>
                     <div className="flex-grow">
                       <h4 className="font-bold text-lg">{item.name}</h4>

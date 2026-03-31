@@ -14,6 +14,7 @@ import { useOrderStore } from "../store/orderStore";
 import {
   useProductStore,
   createProductFormData,
+  getProductImageSrc,
 } from "../store/productStore";
 import type { Product } from "../store/productStore";
 
@@ -85,7 +86,7 @@ export function AdminDashboard() {
       stock_quantity: product.stock_quantity || 10,
       customizable: product.customizable || false,
     });
-    setImagePreview(product.image || null);
+    setImagePreview(getProductImageSrc(product) || null);
     setSelectedTab("products");
     // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -471,11 +472,14 @@ export function AdminDashboard() {
                         className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
                       >
                         <td className="p-3">
-                          {product.image ? (
+                          {getProductImageSrc(product) ? (
                             <img
-                              src={product.image}
+                              src={getProductImageSrc(product)}
                               alt={product.name}
                               className="w-12 h-12 rounded object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://placehold.co/48x48?text=No+Img';
+                              }}
                             />
                           ) : (
                             <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400">

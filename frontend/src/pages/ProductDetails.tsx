@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { ChangeEvent } from "react";
-import { useProductStore } from "../store/productStore";
+import { useProductStore, getProductImageSrc } from "../store/productStore";
 import { useCartStore } from "../store/cartStore";
 import { useReviewStore } from "../store/reviewStore";
 import { useAuthStore } from "../store/authStore";
@@ -238,7 +238,7 @@ export function ProductDetails() {
 
   // Get display image
   const displayImage =
-    product.image || product.image_url || "https://via.placeholder.com/500";
+    getProductImageSrc(product) || "https://placehold.co/500x500?text=No+Image";
 
   return (
     <div className="max-w-6xl mx-auto pb-12 px-4">
@@ -265,7 +265,7 @@ export function ProductDetails() {
               className="w-full h-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src =
-                  "https://via.placeholder.com/500";
+                  "https://placehold.co/500x500?text=No+Image";
               }}
             />
           </div>

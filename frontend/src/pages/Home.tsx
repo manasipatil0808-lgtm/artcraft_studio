@@ -86,6 +86,9 @@ export function Home() {
                   src={getProductImageSrc(product)} 
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=No+Image';
+                  }}
                 />
                 <button className="absolute top-4 right-4 p-2.5 bg-white/90 backdrop-blur-sm rounded-full hover:bg-brand-100 hover:scale-110 transition-all shadow-md">
                   <HandDrawnHeart className="w-5 h-5 text-brand-600" />

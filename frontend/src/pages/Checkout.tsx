@@ -379,7 +379,7 @@ export function Checkout() {
                   alt={item.name} 
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64';
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/64x64?text=No+Image';
                   }}
                 />
               </div>
